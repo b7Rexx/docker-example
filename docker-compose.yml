@@ -1,0 +1,55 @@
+version: '2'
+services:
+  nginx:
+    restart: always
+    build:
+        context: ./nginx
+    ports:
+        - "80:80"
+    networks:
+      - nginxnet
+    
+  backend:
+    build:
+      context: ./backend/
+    # command: npm start
+    volumes:
+      - ./backend/:/usr/app/backend
+    ports:
+      - "3451:3451"
+    depends_on:
+      - mysqldb
+
+  
+  frontend:
+    build:
+      context: ./frontend/
+    # command: npm start
+    volumes:
+      - ./frontend/:/usr/app/frontend
+    ports:
+      - "3450:3450"
+    
+  mysqldb:
+    image: mysql
+    restart: always
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
+      MYSQL_DATABASE: 'docker_example_db'
+      MYSQL_ROOT_PASSWORD: ''
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes: 
+      - db-config:/etc/mysql
+      - db-data:/var/lib/mysql
+      - ./db/backup/files/:/data_backup/data
+
+volumes: 
+  db-config:
+  db-data:
+
+networks:
+  nginxnet:
